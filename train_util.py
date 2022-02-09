@@ -25,9 +25,6 @@ def torch_to(*args):
 
 
 def get_pseudo_y(model:nn.Sequential, x:torch.Tensor, confidence_q:float=0.1, GIFT=False) -> (np.ndarray, np.ndarray):
-    """
-    予測クラスの最大-最小の差が小さいものは、予測に自信がないので除外。基準値は10%分位点, confidence_q = 0.1
-    """
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(np.array(x).astype(np.float32))
     with torch.no_grad():
@@ -41,7 +38,6 @@ def get_pseudo_y(model:nn.Sequential, x:torch.Tensor, confidence_q:float=0.1, GI
 
 
 def _preprocess_input(x, y) -> TensorDataset:
-    # 入力の前処理
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(np.array(x).astype(np.float32))
     if not isinstance(y, torch.Tensor):
@@ -240,17 +236,17 @@ def train_al(model:nn.Module, x_all:list, y_all:list, x_eval:torch.Tensor, y_eva
         loop_accuracy, loop_sampled_index = list(), list()
         for i in range(num_repeats):
             gdamfAL = deepcopy(model)
-            # 初期点のサンプリング
+            # initial sampling
             sampled_index = [candidate] + [np.random.choice(candidate, initial_samples, replace=False) for i in range(steps-1)]
-            # 初期点をサンプリングした分だけ予算を削除
+            # Remove the budget for the initial sampled.
             _budget = budget - (np.array(cost) * initial_samples).sum()
-            # 初回のトレーニング
+            # initial training
             x = [_x[idx] for _x, idx in zip(x_all, sampled_index)]
             y = [_y[idx] for _y, idx in zip(y_all, sampled_index)]
             gdamfAL, loss_history = trainGDAMF(gdamfAL, x, y, n_epochs, weight_decay, True)
-            # MFで各ドメインからのサンプリング数を決定する
+            # compute optimal number of queries from each pool dataset
             opt_sample_num = calc_fidelity_eval_num(gdamfAL, x_all, _budget, cost, rK)
-            # 各ドメインに割り振られたbudgetが尽きるまで個別に能動学習
+            # active learning with mini-model
             for d, num in enumerate(opt_sample_num):
                 domain = d + 1
                 x, y = x_all[domain][sampled_index[domain]], y_all[domain][sampled_index[domain]]
@@ -262,11 +258,11 @@ def train_al(model:nn.Module, x_all:list, y_all:list, x_eval:torch.Tensor, y_eva
                     sampled_index[domain] = np.append(sampled_index[domain], unc.argmax())
                     x, y = x_all[domain][sampled_index[domain]], y_all[domain][sampled_index[domain]]
                     mini_model, lh = trainGDAMF(mini_model, [x], [y], n_epochs, weight_decay, True)
-            # 最後にもう一度学習する
+            # final training
             x = [_x[idx] for _x, idx in zip(x_all, sampled_index)]
             y = [_y[idx] for _y, idx in zip(y_all, sampled_index)]
             gdamfAL, loss_history = trainGDAMF(gdamfAL, x, y, n_epochs, weight_decay, True)
-            # 評価
+            # evaluation
             acc = calc_accuracy(gdamfAL, x_eval, y_eval, steps)
             loop_accuracy.append(acc)
             loop_sampled_index.append(sampled_index)
@@ -332,7 +328,7 @@ def AuxSelfTrain(model:nn.Module, x_all:list, y_all:list, x_eval:torch.Tensor, y
             aux = aux.to(torch.device('cpu'))
             pred_s, pseudo_ys = aux.classifier_prediction(x_input)
             pred_t, pseudo_yt = aux.ensemble_prediction(x_input, y_input, torch.tensor(x_target))
-            # クラスラベル毎に確信度が高いものをピックアップする
+            # select the one with the highest confidence level for each class label
             conf_index_s = get_index_each_label(num_labels, top_s, pred_s, pseudo_ys)
             conf_index_t = get_index_each_label(num_labels, top_t, pred_t, pseudo_yt)
             if m == 1:

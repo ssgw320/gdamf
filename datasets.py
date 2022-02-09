@@ -13,7 +13,8 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
 
-data_dir = Path('/home/jupyter-e12813/ISM/data')
+data_dir = Path('/home/')
+
 
 def mnist_with_loader(batch_size:int=128) -> dict:
     global data_dir

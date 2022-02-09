@@ -89,7 +89,7 @@ class MLP(nn.Module):
         if pseudoY is None:
             pred_y = self.pred(feature)
         else:
-            # 1つ前のドメインが予測した擬似ラベルも加えて予測を行う, 擬似ラベルは 100データ, 3クラスなら100＊3行列
+            # Add the pseudo-labels
             pred_feature = torch.cat([feature, pseudoY], dim=1)
             pred_y = self.pred(pred_feature)
         return feature, pred_y

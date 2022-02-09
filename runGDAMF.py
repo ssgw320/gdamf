@@ -58,10 +58,10 @@ def NumInterDomainExperiment():
         print(f'num of domain {d}')
         loop_rand_acc, loop_gst_acc = list(), list()
         for i in range(num_repeats):
-            # interの選択
+            # select intermediate
             idx = np.random.choice(num_inter_domain, d, replace=False)
             idx.sort()
-            # sourceとtargetを追加
+            # add source and target
             idx = np.insert(idx, 0, 0)
             idx = np.append(idx, len(x_all)-1)
             x_subset = np.array(x_all)[idx]
@@ -93,7 +93,6 @@ def _prepareExperiment(key:str):
     initial_samples = settings[key]['cost']['initial_samples']
     idx = settings[key]['cost']['idx']
     x_all, y_all = np.array(x_all)[idx], np.array(y_all)[idx]
-    #cost = np.arange(len(x_all))[1:]
     cost = np.array(settings[key]['cost']['cost'])
     return x_all, y_all, x_eval, y_eval, budgets, cost, initial_samples
 

@@ -46,15 +46,15 @@ def get_expand_range(series:pd.Series, ratio:int=10) -> list:
 def plot_gradual(x_all:list, y_all:list) -> go.Figure:
     df = pd.DataFrame(np.vstack(x_all), columns=['x1', 'x2'])
     df['y'] = np.hstack(y_all).astype(str)
-    # Gradual Shift設定として各段階でのデータサイズは同じとする
+    # As gradual shift setting, the size of dataset at each step is the same.
     domain_size = y_all[0].size
     partition = df.shape[0] // domain_size
     df['domain'] = ['source'] * domain_size + ['inter'] * domain_size * (partition - 2) + ['target'] * domain_size
-    # plotly animation用にフレームを追加
+    # add 'frame' for plotly animation
     split_partition = np.array_split(np.arange(df.shape[0]), partition)
     for i, idx in enumerate(split_partition):
         df.loc[idx, 'frame'] = int(i)
-    # 描画
+    # plot
     x, y = 'x1', 'x2'
     fig = px.scatter(data_frame=df, x=x, y=y, color='y', animation_frame='frame',
                      range_x=get_expand_range(df[x]), range_y=get_expand_range(df[y]), width=600, height=600)
@@ -71,14 +71,13 @@ def visualize_predict(x:np.ndarray, y:np.ndarray, model:torch.nn.Sequential, dom
     x1range = np.linspace(x1_min, x1_max, mesh_points)
     x2range = np.linspace(x2_min, x2_max, mesh_points)
     x1x1, x2x2 = np.meshgrid(x1range, x2range)
-    # 各meshgridに対して、確率推定の結果を予測計算
     mesh = np.c_[x1x1.ravel(), x2x2.ravel()]
     with torch.no_grad():
         _, logits = model(torch.tensor(mesh.astype(np.float32)), domain)
         logits = torch.nn.functional.softmax(logits, dim=1)
         z = np.array(logits)[:,1]
     z = z.reshape(x1x1.shape)
-    # 描画
+    # plot
     yA, yB = np.unique(y)
     fig = go.Figure(data=[go.Scatter(x=x[y==yA, 0], y=x[y==yA, 1], mode='markers')])  # Type=Aのプロットを追加
     fig.add_scatter(x=x[y==yB, 0], y=x[y==yB, 1], mode='markers')  # Type=Bのプロットを追加
@@ -91,10 +90,10 @@ def add_var_scatter_plot(fig:go.Figure, x:np.ndarray, y:np.ndarray, color:list, 
                          dash:str='solid', row:int=1, col:int=1, showlegend:bool=True, y_std=None, mode='lines+markers'):
     """
     @memo
-    色の見つけ方
-    px.colors.qualitative.swatches()  # 希望の色を見つける
-    px.colors.qualitative.Plotly      # 色のhexを得る
-    px.colors.hex_to_rgb('#636EFA')   # RGBに変換
+    about plotly color
+    px.colors.qualitative.swatches()
+    px.colors.qualitative.Plotly
+    px.colors.hex_to_rgb('#636EFA')
     dash args -> "solid", "dot", "dash", "longdash", "dashdot", "longdashdot"
     """
     rgb = 'rgb' + str(tuple(color))
@@ -272,25 +271,25 @@ def plot_CostExperiment(num_repeat:int):
         data = {p.stem.split('_')[-1]: pd.read_pickle(p) for p in d_path}
         dataframe = []
         for key in data.keys():
-            # budgetに依存しない手法をプロットのために水増し
+            # for budget-free methods
             if key.split('-')[0] in ['so', 'gst', 'gift', 'aux']:
                 len_x = data[key]['x'].shape[0]
                 data[key]['acc'] = np.tile(np.array(data[key]['acc']), len_x).reshape(len_x, num_repeat)
             else:
                 data[key]['acc'] = np.array(data[key]['acc'])
-            # データフレーム化
+            # as dataframe
             df = pd.DataFrame(index=data[key]['x'], data=data[key]['acc'])
             df = df.melt(ignore_index=False, value_name=key).drop('variable', axis=1).groupby(level=0).agg(['mean', 'std'])
             dataframe.append(df)
         dataframe = pd.concat(dataframe, axis=1)
         all_result_df[d_type] = dataframe
-        # プロット, 表示順を調整したいのでリストで直接指定
+        # Specify the display order
         for key in ['aux', 'gift', 'gst', 'dsaoda', 'gdamf+al', 'gdamf+random', 'oracle', 'so']:
-            # low-mid-highがあるものは最も性能が良いものを選択してプロット
+            # select the best hyper parameter
             if key in ['dsaoda', 'gift', 'aux']:
                 subset_col = [c for c in dataframe.columns if (key in c[0]) & ('mean' in c[1])]
                 key = dataframe[subset_col].max().idxmax()[0]
-            # 平均値と標準偏差をプロット
+            # plot mean and std
             row, col = pos_dict[d_type]
             name, color, mode, dash = plot_dict[key] if '-' not in key else plot_dict[key.split('-')[0]]
             rgb = 'rgb' + str(tuple(color))
@@ -299,9 +298,9 @@ def plot_CostExperiment(num_repeat:int):
             mean = dataframe[key]['mean'].values
             std = dataframe[key]['std'].values
             add_var_scatter_plot(fig, x, mean, color, name, dash, row, col, showlegend, std, mode)
-        # １種、プロットを行った後は凡例は不要
+        # not need legend, because already ploted
         showlegend = False
-    # レイアウト調整
+    # modify layout
     x_tick = dict(tickmode='linear', tick0=0, dtick=500)
     x_range, y_range = [1000, 3100], [0.25, 1.0]
     fig.update_layout(yaxis1_title='Accuracy', 
