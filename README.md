@@ -1,5 +1,7 @@
 # GDAMF
-Code for the paper "Cost-effective Framework for Gradual Domain Adaptation with Multifidelity".
+Code for the paper "Cost-effective Framework for Gradual Domain Adaptation with Multifidelity".<br>
+https://arxiv.org/abs/2202.04359
+
 
 # Dataset instructions
 Each dataset can be downloaded from the following links.
