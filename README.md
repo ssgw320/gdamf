@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # GDAMF
 Code for the paper "Cost-effective Framework for Gradual Domain Adaptation with Multifidelity".<br>
 https://arxiv.org/abs/2202.04359
@@ -42,7 +41,3 @@ Run the following command to obtain the result of baseline methods.
 
 We use AWS (g4dn.8xlarge instance) for above experiment, and the above script takes about a day to run.
 
-
-=======
-# gdamf
->>>>>>> commit test 2
