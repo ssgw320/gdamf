@@ -34,10 +34,10 @@ If necessary, create an environment with the following command.
 >  conda env create -n your-env-name -f gdamf_env.yml
 
 Run the following command to obtain experiment.
-> python main.py  mnist
+> python mainGDAMF.py mnist
 
 Run the following command to obtain the result of baseline methods.
-> python competitor.py mnist dsaoda
+> python mainBaseline.py mnist dsaoda
 
 We use AWS (g4dn.8xlarge instance) for above experiment, and the above script takes about a day to run.
 
