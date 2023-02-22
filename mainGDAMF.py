@@ -27,7 +27,8 @@ rep = 20
 settings = {'mnist': (datasets2.load_RotatedMNIST2, 3),
             'portraits': (datasets2.load_Portraits, 2),
             'gas': (datasets2.load_GasSensor, 1),
-            'cover': (datasets2.load_CoverType, 3)}
+            'cover': (datasets2.load_CoverType, 3),
+            'rotmoon': (datasets2.make_gradual_data, 1)}
 
 if __name__ == '__main__':
     key = sys.argv[1]
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     num_init_labels, cost, budgets = util.query_settings(x_all, num_inter, flag)
     # results, accuracy and queried sample size
     gdamf = np.full(shape=(len(budgets), rep), fill_value=np.nan)  # prposed method
-    gdamf_rnd = np.full_like(gdamf, fill_value=np.nan)  # ablation study1, withour AL
+    gdamf_rnd = np.full_like(gdamf, fill_value=np.nan)  # ablation study1, without AL
     gdamf_direct = np.full_like(gdamf, fill_value=np.nan)  # ablation study2, without intermediate
     gdamf_abl = np.full_like(gdamf, fill_value=np.nan)  # ablation study3, without AL, intermediate
     gdamf_ws = np.full_like(gdamf, fill_value=np.nan)  # ablation study 4, without warm start

@@ -26,7 +26,8 @@ from sklearn.preprocessing import StandardScaler
 from torchvision.datasets import MNIST
 
 # +
-data_dir = Path('/home/')
+#data_dir = Path('/home/')
+data_dir = Path('/home/jupyter-e12813/ISM/data/')
 
 
 def load_RotatedMNIST2(start=0, end=60, num_inter_domain=20, num_domain_samples=2000):
